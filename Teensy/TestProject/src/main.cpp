@@ -1,37 +1,26 @@
+/* 
+Useful links:
+  https://www.sparkfun.com/datasheets/GPS/NMEA%20Reference%20Manual-Rev2.1-Dec07.pdf
+*/
+
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
-void lightOn();
-void lightOff();
+#define GPS Serial1 // GPS module is connected to serial port 1 on Teensy.
+String GPSmsg;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
-  pinMode(LED_BUILTIN, OUTPUT);
+  // Initialize serial communication to USB port and GPS module.
+  Serial.begin(9600);
+  GPS.begin(9600);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  // turn the LED on (HIGH is the voltage level)
-  lightOn();
-  // wait for a second
-  delay(5000);
-  // turn the LED off by making the voltage LOW
-  lightOff();
-   // wait for a second
-  delay(1000);
+  if (GPS.available() > 0) { // Test if read buffer is not empty.
+    GPSmsg = GPS.readStringUntil(13).trim(); // Read input message
+    GPSmsg.trim(); // Trim out any leading spaces.
+    if (GPSmsg.startsWith("$GPRMC")) { // Test if image is RMC message
+      Serial.println(GPSmsg);
+    }
+  } 
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
-}
-
-void lightOn(){
-  digitalWrite(LED_BUILTIN, HIGH);
-}
-
-void lightOff(){
-  digitalWrite(LED_BUILTIN, LOW);
-}
