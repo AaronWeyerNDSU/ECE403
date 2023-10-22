@@ -1,5 +1,7 @@
-#ifndef Arduino.h
-#define Arduino.h
+#ifndef NMEA_HPP
+#define NMEA_HPP
+
+#include <Arduino.h>
 
 /* 
 Useful links:
@@ -27,6 +29,7 @@ class NMEA {
 /// @brief Initialize communications with GPS module.
 /// @param serial Serial port that GPS is connected too.
 NMEA::NMEA(HardwareSerial *serial) {
+  // Initialize Communication with GPS
   uart = serial;
 
   valid = false;
