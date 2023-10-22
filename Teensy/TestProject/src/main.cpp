@@ -1,32 +1,33 @@
 // Include libraries
 #include <Arduino.h>
-#include "gps.h"
+#include "NMEA.hpp"
 
 // Define constants
 #define GPS Serial1 // GPS module is connected to serial port 1 on Teensy.
 
-// Define global variables
-String GPSmsg;
-GPSmessage GPSparsed;
+NMEA gps(&GPS);
+int heartBeat;
 
 void setup() {
   // Initialize serial communication to USB port and GPS module.
   Serial.begin(9600);
   GPS.begin(9600);
+  heartBeat = 0;
 }
 
 void loop() {
-  if (GPS.available() > 0) { // Test if read buffer is not empty.
-    GPSmsg = GPS.readStringUntil(13); // Read input message
-    GPSmsg.trim(); // Trim out any leading spaces.
-    if (GPSmsg.startsWith("$GPRMC")) { // Test if image is RMC message
-      Serial.println(GPSmsg);
-      GPSparsed = parseGPSmessage(GPSmsg);
-      Serial.println(GPSparsed.valid);
-      Serial.println(GPSparsed.latitude,5);
-      Serial.println(GPSparsed.longitude,5);
-    }
-  } 
+  if (gps.read()) {
+    Serial.println(gps.valid);
+    Serial.println(gps.latitude,5);
+    Serial.println(gps.longitude,5);
+    Serial.println(gps.UTCtime,5);
+    heartBeat = 0;
+  }
+
+  if (++heartBeat%50000 == 0) {
+    heartBeat = 0;
+    Serial.println(".");
+  }
 }
 
 /* 
