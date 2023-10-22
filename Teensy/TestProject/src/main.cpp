@@ -20,7 +20,7 @@ void loop() {
     Serial.println(gps.valid);
     Serial.println(gps.latitude,5);
     Serial.println(gps.longitude,5);
-    Serial.println(gps.UTCtime,5);
+    Serial.println(gps.UTCtime,3);
     heartBeat = 0;
   }
 
@@ -29,9 +29,3 @@ void loop() {
     Serial.println(".");
   }
 }
-
-/* 
-Useful links:
-  https://www.sparkfun.com/datasheets/GPS/NMEA%20Reference%20Manual-Rev2.1-Dec07.pdf
-*/
-

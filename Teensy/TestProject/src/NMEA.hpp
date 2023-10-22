@@ -1,6 +1,11 @@
 #ifndef Arduino.h
 #define Arduino.h
 
+/* 
+Useful links:
+  https://www.sparkfun.com/datasheets/GPS/NMEA%20Reference%20Manual-Rev2.1-Dec07.pdf
+*/
+
 /// @brief Class used to read and parse NMEA messages collected from a GPS connected to a serial port.
 class NMEA {
   public:
