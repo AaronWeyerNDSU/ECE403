@@ -5,26 +5,40 @@
 #include <vector>
 #include "MotorEncoder.hpp"
 
+#define FL 0
+#define FR 1
+#define BL 2
+#define BR 3
+
 class Position {
 public:
     Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR);
-    String getCurrentState();
+    static void ticFL();
+    static void ticFR();
+    static void ticBL();
+    static void ticBR();
+    
     void update();
     int compareMotionProfiles();
-    void setVelocity(int speed);
-    static float position[2];
+    void setMotorSpeed(int FLSpeed, int FRSpeed, int BLSpeed, int BRSpeed);
+    String getMotorSpeed();
+    String getCurrentState();
+    static float X;
+    static float Y;
     static float angle;
 
 private:
-    MotorEncoder encFL, encFR, encBL, encBR;
     static int currentState[4];
+    static int velocity[4];
     static int motionProfiles[17][4];
 };
 
 // Initialize static members
-float Position::position[2] = {0.0, 0.0};
+float Position::X = 0.0;
+float Position::Y = 0.0;
 float Position::angle = 0;
 int Position::currentState[4] = {0, 0, 0, 0};
+int Position::velocity[4] = {0, 0, 0, 0};
 int Position::motionProfiles[17][4] = {
     {1,1,1,1},      // Forward
     {-1,-1,-1,-1},  // Reverse
@@ -45,10 +59,53 @@ int Position::motionProfiles[17][4] = {
     {0,0,0,0}       // No motion
 }; 
 
-Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR)
-    : encFL(encoderPinFL), encFR(encoderPinFR), encBL(encoderPinBL), encBR(encoderPinBR){
-
+Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR){
+    pinMode(encoderPinFL, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(encoderPinFL), ticFL, CHANGE);
+    pinMode(encoderPinFR, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(encoderPinFR), ticFR, CHANGE);
+    pinMode(encoderPinBL, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(encoderPinBL), ticBL, CHANGE);
+    pinMode(encoderPinBR, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(encoderPinBR), ticBR, CHANGE);
 };
+
+void Position::ticFL() {
+    if (velocity[FL] > 0) {
+        currentState[FL]++;
+    } else if (velocity[FL] < 0) {
+        currentState[FL]--;
+    } else {
+        // do nothing because we don't know the direction of spin.
+    }
+}
+void Position::ticFR() {
+    if (velocity[FR] > 0) {
+        currentState[FR]++;
+    } else if (velocity[FR] < 0) {
+        currentState[FR]--;
+    } else {
+        // do nothing because we don't know the direction of spin.
+    }
+}
+void Position::ticBL() {
+    if (velocity[BL] > 0) {
+        currentState[BL]++;
+    } else if (velocity[BL] < 0) {
+        currentState[BL]--;
+    } else {
+        // do nothing because we don't know the direction of spin.
+    }
+}
+void Position::ticBR() {
+    if (velocity[BR] > 0) {
+        currentState[BR]++;
+    } else if (velocity[BR] < 0) {
+        currentState[BR]--;
+    } else {
+        // do nothing because we don't know the direction of spin.
+    }
+}
 
 String Position::getCurrentState(){
     String result = "";
@@ -60,97 +117,111 @@ String Position::getCurrentState(){
     }
     return result;
 }
-void Position::setVelocity(int speed){
-    encFL.setMotorSpeed(speed);
-    encFR.setMotorSpeed(speed);
-    encBL.setMotorSpeed(speed);
-    encBR.setMotorSpeed(speed);
-    
+void Position::setMotorSpeed(int speedFL = velocity[FL], int speedFR = velocity[FR], int speedBL = velocity[BL], int speedBR = velocity[BR]){
+    velocity[FL] = speedFL;
+    velocity[FR] = speedFR;
+    velocity[BL] = speedBL;
+    velocity[BR] = speedBR;
+
+    for (int motor : {FL, FR, BL, BR}) {
+        // Set the speed of the motor.
+        if (velocity[motor] > 0){
+            // Do things that make motor spin forward.
+            // DAC or poorDAC using digital outputs.
+        } else if (velocity[motor] < 0){
+            // Do things that make motor spin backward.
+            // DAC or poorDAC using digital outputs.
+        } else {
+            // Do things that make motor stop spinning.
+            // DAC or poorDAC using digital outputs.
+        }
+    }
 }
-
+String Position::getMotorSpeed(){
+    String result = "";
+    for (int motor : {FL, FR, BL, BR}) {
+        if (motor > 0) {
+            result += ",";
+        }
+        result += String(velocity[motor]);
+    }
+    return result;
+}
 void Position::update(){
-    // Update tics for each wheel
-    currentState[0] += encFL.getCount();
-    currentState[1] += encFR.getCount();
-    currentState[2] += encBL.getCount();
-    currentState[3] += encBR.getCount();
-
     int motion = compareMotionProfiles();
 
     float distancePerTic = 0.009974548;
     float mult45Degree = cos(45.0);
-    switch (motion)
-    {
-    case 0: // Forward
-        position[0] += cos(angle)*distancePerTic;
-        position[1] += sin(angle)*distancePerTic;
-        break;
-    case 1: // Reverse
-        position[0] -= cos(angle)*distancePerTic;
-        position[1] -= sin(angle)*distancePerTic;
-        break;
-    case 2: // Strafe Right
-        position[0] += cos(angle+90)*distancePerTic*mult45Degree;
-        position[1] += sin(angle+90)*distancePerTic*mult45Degree;
-        break;
-    case 3: // Strafe Left
-        position[0] -= cos(angle+90)*distancePerTic*mult45Degree;
-        position[1] -= sin(angle+90)*distancePerTic*mult45Degree;
-        break;
-    case 4: // Forward and Strafe Right
-        position[0] = 0;
-        position[1] = 0;
-        break;
-    case 5: // Backward and Strafe Left
-        position[0] = 1;
-        position[1] = 1;
-        break;
-    case 6: // Forward and Strafe Left
-        position[0] = 2;
-        position[1] = 2;
-        break;
-    case 7: // Backward and Strafe Right
-        position[0] = 3;
-        position[1] = 3;
-        break;
-    case 8: // Rotate on Right side CW
-        position[0] = 4;
-        position[1] = 4;
-        break;
-    case 9: // Rotate on Right side CCW
-        position[0] = 5;
-        position[1] = 5;
-        break;
-    case 10: // Rotate of Left side CCW
-        position[0] = 6;
-        position[1] = 6;
-        break;
-    case 11: // Rotate on Left side CW
-        position[0] = 7;
-        position[1] = 7;
-        break;
-    case 12: // Rotate behind CW
-        position[0] = 8;
-        position[1] = 8;
-        break;
-    case 13: // Rotate behind CCW
-        position[0] = 9;
-        position[1] = 9;
-        break;
-    case 14: // Rotate ahead CW
-        position[0] = 10;
-        position[1] = 10;
-        break;
-    case 15: // Rotate ahead CCW
-        position[0] = 11;
-        position[1] = 11;
-        break;
-    case 16: // No motion
-        break;
-    default:    
-        break;
+    switch (motion) {
+        case 0: // Forward
+            X += cos(angle)*distancePerTic;
+            Y += sin(angle)*distancePerTic;
+            break;
+        case 1: // Reverse
+            X -= cos(angle)*distancePerTic;
+            Y -= sin(angle)*distancePerTic;
+            break;
+        case 2: // Strafe Right
+            X += cos(angle+90)*distancePerTic*mult45Degree;
+            Y += sin(angle+90)*distancePerTic*mult45Degree;
+            break;
+        case 3: // Strafe Left
+            X -= cos(angle+90)*distancePerTic*mult45Degree;
+            Y -= sin(angle+90)*distancePerTic*mult45Degree;
+            break;
+        case 4: // Forward and Strafe Right
+            X = 0;
+            Y = 0;
+            break;
+        case 5: // Backward and Strafe Left
+            X = 1;
+            Y = 1;
+            break;
+        case 6: // Forward and Strafe Left
+            X = 2;
+            Y = 2;
+            break;
+        case 7: // Backward and Strafe Right
+            X = 3;
+            Y = 3;
+            break;
+        case 8: // Rotate on Right side CW
+            X = 4;
+            Y = 4;
+            break;
+        case 9: // Rotate on Right side CCW
+            X = 5;
+            Y = 5;
+            break;
+        case 10: // Rotate of Left side CCW
+            X = 6;
+            Y = 6;
+            break;
+        case 11: // Rotate on Left side CW
+            X = 7;
+            Y = 7;
+            break;
+        case 12: // Rotate behind CW
+            X = 8;
+            Y = 8;
+            break;
+        case 13: // Rotate behind CCW
+            X = 9;
+            Y = 9;
+            break;
+        case 14: // Rotate ahead CW
+            X = 10;
+            Y = 10;
+            break;
+        case 15: // Rotate ahead CCW
+            X = 11;
+            Y = 11;
+            break;
+        case 16: // No motion
+            break;
+        default:    
+            break;
     }
-
 }
 
 int Position::compareMotionProfiles(){
@@ -161,8 +232,8 @@ int Position::compareMotionProfiles(){
     int sum[numProfiles];
     for ( int i = 0; i < numProfiles; i++ ){
         sum[i] = 0;
-        for ( int j = 0; j < 4; j++ ){
-            sum[i] += abs( currentState[j] - motionProfiles[i][j] );
+        for ( int motor : {FL, FR, BL, BR}){
+            sum[i] += abs( currentState[motor] - motionProfiles[i][motor] );
         }
     }
 

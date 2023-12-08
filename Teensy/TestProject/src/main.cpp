@@ -11,9 +11,8 @@
 #define ENCODER4 5
 
 NMEA gps(&GPS);
-// Position position(ENCODER1, ENCODER2, ENCODER3, ENCODER4);
-MotorEncoder testenc1(ENCODER1);
-MotorEncoder testenc2(ENCODER2);
+Position position(ENCODER1, ENCODER2, ENCODER3, ENCODER4);
+
 int heartBeat;
 float oldPos[2];
 
@@ -22,9 +21,7 @@ void setup() {
   Serial.begin(9600);
   GPS.begin(9600);
   
-  // position.setVelocity(1);
-  testenc1.setMotorSpeed(1);
-  testenc2.setMotorSpeed(1);
+  position.setMotorSpeed(1,1,1,1);
 
   // oldPos[2] = {0};
 
@@ -55,10 +52,12 @@ void loop() {
 
   if (++heartBeat%50000 == 0) {
     heartBeat = 0;
-    Serial.println(testenc1.getCount());
-    Serial.println(testenc2.getCount());
     Serial.println('.');
-    //Serial.println(position.getCurrentState());
+    Serial.println(position.getCurrentState());
+    Serial.println(position.getMotorSpeed());
+    Serial.println(position.X);
+    Serial.println(position.Y);
+    position.update();
   }
 
   

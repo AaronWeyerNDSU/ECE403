@@ -34,7 +34,7 @@ MotorEncoder::MotorEncoder(int digitalPin) {
 }
 
 void MotorEncoder::staticTicWrapper() {
-    MotorEncoder* instance = reinterpret_cast<MotorEncoder*>(interruptArgs);  // Retrieve the instance from the interrupt context
+    
     if (instance != nullptr) {
         instance->tic();
     }
