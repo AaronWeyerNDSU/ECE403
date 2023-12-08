@@ -8,14 +8,15 @@
 class Position {
 public:
     Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR);
-    std::vector<float> getPosition();
+    String getCurrentState();
     void update();
     int compareMotionProfiles();
+    void setVelocity(int speed);
+    static float position[2];
+    static float angle;
 
 private:
     MotorEncoder encFL, encFR, encBL, encBR;
-    static float position[2];
-    static float angle;
     static int currentState[4];
     static int motionProfiles[17][4];
 };
@@ -49,6 +50,24 @@ Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int enc
 
 };
 
+String Position::getCurrentState(){
+    String result = "";
+    for (size_t i = 0; i < 4; ++i) {
+        if (i > 0) {
+            result += ",";
+        }
+        result += String(currentState[i]);
+    }
+    return result;
+}
+void Position::setVelocity(int speed){
+    encFL.setMotorSpeed(speed);
+    encFR.setMotorSpeed(speed);
+    encBL.setMotorSpeed(speed);
+    encBR.setMotorSpeed(speed);
+    
+}
+
 void Position::update(){
     // Update tics for each wheel
     currentState[0] += encFL.getCount();
@@ -79,28 +98,52 @@ void Position::update(){
         position[1] -= sin(angle+90)*distancePerTic*mult45Degree;
         break;
     case 4: // Forward and Strafe Right
+        position[0] = 0;
+        position[1] = 0;
         break;
     case 5: // Backward and Strafe Left
+        position[0] = 1;
+        position[1] = 1;
         break;
     case 6: // Forward and Strafe Left
+        position[0] = 2;
+        position[1] = 2;
         break;
     case 7: // Backward and Strafe Right
+        position[0] = 3;
+        position[1] = 3;
         break;
     case 8: // Rotate on Right side CW
+        position[0] = 4;
+        position[1] = 4;
         break;
     case 9: // Rotate on Right side CCW
+        position[0] = 5;
+        position[1] = 5;
         break;
     case 10: // Rotate of Left side CCW
+        position[0] = 6;
+        position[1] = 6;
         break;
     case 11: // Rotate on Left side CW
+        position[0] = 7;
+        position[1] = 7;
         break;
     case 12: // Rotate behind CW
+        position[0] = 8;
+        position[1] = 8;
         break;
     case 13: // Rotate behind CCW
+        position[0] = 9;
+        position[1] = 9;
         break;
     case 14: // Rotate ahead CW
+        position[0] = 10;
+        position[1] = 10;
         break;
     case 15: // Rotate ahead CCW
+        position[0] = 11;
+        position[1] = 11;
         break;
     case 16: // No motion
         break;
@@ -118,8 +161,9 @@ int Position::compareMotionProfiles(){
     int sum[numProfiles];
     for ( int i = 0; i < numProfiles; i++ ){
         sum[i] = 0;
-        for ( int j = 0; j < 4; j++ )
-        sum[i] += abs( currentState[j] - motionProfiles[i][j] );
+        for ( int j = 0; j < 4; j++ ){
+            sum[i] += abs( currentState[j] - motionProfiles[i][j] );
+        }
     }
 
     // Find the index of the minimum value in the 'sum' array
@@ -130,6 +174,11 @@ int Position::compareMotionProfiles(){
             minValue = sum[i];
             minIndex = i;
         }
+    }
+
+    // Update the current state of the recorded encoder values.
+    for ( int i = 0; i < 4; i++ ){
+            currentState[i] -= motionProfiles[minIndex][i];
     }
 
     // Return the corresponding motion profile.

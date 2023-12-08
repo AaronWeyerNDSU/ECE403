@@ -6,32 +6,47 @@
 class MotorEncoder {
 public:
     MotorEncoder(int digitalPin);
-    static void tic();
+    void tic();
     void setCount(int newCount);
     void setMotorSpeed(int8_t velocity);
     int getCount();
-    int getMotorSpeed();
+    int8_t getMotorSpeed();
     float ticToMeter(int tics);
-    
+
 private:
     int digitalPin;
-    static int count;
-    static int8_t velocity;
+    int count;
+    int8_t velocity;
+    static void staticTicWrapper();
+    static MotorEncoder* instance;  // Static pointer to the instance
 };
+
+MotorEncoder* MotorEncoder::instance = nullptr;  // Initialize the static pointer
 
 MotorEncoder::MotorEncoder(int digitalPin) {
     this->digitalPin = digitalPin;
+    this->count = 0;
+    this->velocity = 0;
+    instance = this;  // Set the static pointer to this instance
+
     pinMode(digitalPin, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(digitalPin), tic, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(digitalPin), staticTicWrapper, CHANGE);
+}
+
+void MotorEncoder::staticTicWrapper() {
+    MotorEncoder* instance = reinterpret_cast<MotorEncoder*>(interruptArgs);  // Retrieve the instance from the interrupt context
+    if (instance != nullptr) {
+        instance->tic();
+    }
 }
 
 void MotorEncoder::tic() {
-    if ( velocity > 0 ){
+    if (velocity > 0) {
         count++;
-    } else if ( velocity < 0 ){
+    } else if (velocity < 0) {
         count--;
     } else {
-        // do nothing because we dont know direction of spin.
+        // do nothing because we don't know the direction of spin.
     }
 }
 
@@ -72,6 +87,6 @@ int MotorEncoder::getCount(){
 
 float MotorEncoder::ticToMeter(int tics){
     return tics*0.009974548; // assuming 20 tics per rotation and wheel diamer of 2.5in
-};
+}
 
 #endif
