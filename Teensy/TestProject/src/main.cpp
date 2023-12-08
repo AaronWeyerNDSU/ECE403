@@ -13,6 +13,8 @@ void setup() {
   Serial.begin(9600);
   GPS.begin(9600);
   heartBeat = 0;
+  pinMode(2, INPUT_PULLUP);
+  pinMode(13, OUTPUT);
 }
 
 void loop() {
@@ -28,4 +30,7 @@ void loop() {
     heartBeat = 0;
     Serial.println(".");
   }
+
+  digitalWrite(13, digitalRead(2));
+
 }
