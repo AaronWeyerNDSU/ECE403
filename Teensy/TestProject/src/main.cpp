@@ -10,7 +10,7 @@
 #define ENCODER3 4
 #define ENCODER4 5
 
-NMEA gps(&GPS);
+//NMEA gps(&GPS);
 Position position(ENCODER1, ENCODER2, ENCODER3, ENCODER4);
 
 int heartBeat;
@@ -19,7 +19,7 @@ float oldPos[2];
 void setup() {
   // Initialize serial communication to USB port and GPS module.
   Serial.begin(9600);
-  GPS.begin(9600);
+  //GPS.begin(9600);
   
   position.setMotorSpeed(1,1,1,1);
 
@@ -29,13 +29,13 @@ void setup() {
 }
 
 void loop() {
-  if (gps.read()) {
-    // Serial.println(gps.valid);
-    // Serial.println(gps.latitude,5);
-    // Serial.println(gps.longitude,5);
-    // Serial.println(gps.UTCtime,3);
-    // heartBeat = 0;
-  }
+  // if (gps.read()) {
+  //   Serial.println(gps.valid);
+  //   Serial.println(gps.latitude,5);
+  //   Serial.println(gps.longitude,5);
+  //   Serial.println(gps.UTCtime,3);
+  //   heartBeat = 0;
+  // }
   
 
   //position.compareMotionProfiles();
@@ -59,7 +59,4 @@ void loop() {
     Serial.println(position.Y);
     position.update();
   }
-
-  
-
 }

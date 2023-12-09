@@ -40,6 +40,7 @@ float Position::angle = 0;
 int Position::currentState[4] = {0, 0, 0, 0};
 int Position::velocity[4] = {0, 0, 0, 0};
 int Position::motionProfiles[17][4] = {
+    {0,0,0,0},       // No motion
     {1,1,1,1},      // Forward
     {-1,-1,-1,-1},  // Reverse
     {1,-1,-1,1},    // Strafe Right
@@ -55,8 +56,7 @@ int Position::motionProfiles[17][4] = {
     {1,-1,0,0},     // Rotate behind CW
     {-1,1,0,0},     // Rotate behind CCW
     {0,0,1,-1},     // Rotate ahead CW
-    {0,0,-1,1},     // Rotate ahead CCW
-    {0,0,0,0}       // No motion
+    {0,0,-1,1}      // Rotate ahead CCW
 }; 
 
 Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR){
@@ -153,71 +153,69 @@ void Position::update(){
     float distancePerTic = 0.009974548;
     float mult45Degree = cos(45.0);
     switch (motion) {
-        case 0: // Forward
+        case 1: // Forward
             X += cos(angle)*distancePerTic;
             Y += sin(angle)*distancePerTic;
             break;
-        case 1: // Reverse
+        case 2: // Reverse
             X -= cos(angle)*distancePerTic;
             Y -= sin(angle)*distancePerTic;
             break;
-        case 2: // Strafe Right
+        case 3: // Strafe Right
             X += cos(angle+90)*distancePerTic*mult45Degree;
             Y += sin(angle+90)*distancePerTic*mult45Degree;
             break;
-        case 3: // Strafe Left
+        case 4: // Strafe Left
             X -= cos(angle+90)*distancePerTic*mult45Degree;
             Y -= sin(angle+90)*distancePerTic*mult45Degree;
             break;
-        case 4: // Forward and Strafe Right
+        case 5: // Forward and Strafe Right
             X = 0;
             Y = 0;
             break;
-        case 5: // Backward and Strafe Left
+        case 6: // Backward and Strafe Left
             X = 1;
             Y = 1;
             break;
-        case 6: // Forward and Strafe Left
+        case 7: // Forward and Strafe Left
             X = 2;
             Y = 2;
             break;
-        case 7: // Backward and Strafe Right
+        case 8: // Backward and Strafe Right
             X = 3;
             Y = 3;
             break;
-        case 8: // Rotate on Right side CW
+        case 9: // Rotate on Right side CW
             X = 4;
             Y = 4;
             break;
-        case 9: // Rotate on Right side CCW
+        case 10: // Rotate on Right side CCW
             X = 5;
             Y = 5;
             break;
-        case 10: // Rotate of Left side CCW
+        case 11: // Rotate of Left side CCW
             X = 6;
             Y = 6;
             break;
-        case 11: // Rotate on Left side CW
+        case 12: // Rotate on Left side CW
             X = 7;
             Y = 7;
             break;
-        case 12: // Rotate behind CW
+        case 13: // Rotate behind CW
             X = 8;
             Y = 8;
             break;
-        case 13: // Rotate behind CCW
+        case 14: // Rotate behind CCW
             X = 9;
             Y = 9;
             break;
-        case 14: // Rotate ahead CW
+        case 15: // Rotate ahead CW
             X = 10;
             Y = 10;
             break;
-        case 15: // Rotate ahead CCW
+        case 16: // Rotate ahead CCW
             X = 11;
             Y = 11;
-            break;
-        case 16: // No motion
             break;
         default:    
             break;
