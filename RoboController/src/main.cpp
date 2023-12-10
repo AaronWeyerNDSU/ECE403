@@ -29,17 +29,19 @@ void setup() {
 }
 
 void loop() {
-  // if (GPS.available()){
-  //   char data = GPS.read();
-  //   Serial.write(data);
-  // }
-
   if (gps.read()) {
+    Serial.println("GPS:");
     Serial.println(gps.valid);
     Serial.println(gps.latitude,5);
     Serial.println(gps.longitude,5);
     Serial.println(gps.UTCtime,3);
-    heartBeat = 0;
+
+    Serial.println("Position:");
+    Serial.println(position.getCurrentState());
+    Serial.println(position.getMotorSpeed());
+    Serial.println(position.X);
+    Serial.println(position.Y);
+    position.update();
   }
   
 
@@ -57,11 +59,6 @@ void loop() {
 
   // if (++heartBeat%50000 == 0) {
   //   heartBeat = 0;
-  //   Serial.println('.');
-  //   Serial.println(position.getCurrentState());
-  //   Serial.println(position.getMotorSpeed());
-  //   Serial.println(position.X);
-  //   Serial.println(position.Y);
-  //   position.update();
+    
   // }
 }
