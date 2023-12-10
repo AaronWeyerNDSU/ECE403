@@ -2,7 +2,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include "/home/aaron/git/VScode/ECE403/RoboController/src/NMEA.hpp"
+#include "NMEA.hpp"
 
 RF24 radio(7, 8); // CE, CSN
 
@@ -16,7 +16,7 @@ void setup() {
 }
 
 void loop() {
-  const char text[] = "Hello World";
+  const char text[] = "Bello Borld";
   radio.write(&text, sizeof(text));
   delay(1000);
 }

@@ -40,20 +40,20 @@ void setup() {
 }
 
 void loop() {
-  // if (gps.read()) {
-  //   Serial.println("GPS:");
-  //   Serial.println(gps.valid);
-  //   Serial.println(gps.latitude,5);
-  //   Serial.println(gps.longitude,5);
-  //   Serial.println(gps.UTCtime,3);
+  if (gps.read()) {
+    Serial.println("GPS:");
+    Serial.println(gps.valid);
+    Serial.println(gps.latitude,5);
+    Serial.println(gps.longitude,5);
+    Serial.println(gps.UTCtime,3);
 
-  //   Serial.println("Position:");
-  //   Serial.println(position.getCurrentState());
-  //   Serial.println(position.getMotorSpeed());
-  //   Serial.println(position.X);
-  //   Serial.println(position.Y);
-  //   position.update();
-  // }
+    Serial.println("Position:");
+    Serial.println(position.getCurrentState());
+    Serial.println(position.getMotorSpeed());
+    Serial.println(position.X);
+    Serial.println(position.Y);
+    position.update();
+  }
   
   if (radio.available()) {
     char text[32] = "";
