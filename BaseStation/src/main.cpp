@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+#include "/home/aaron/git/VScode/ECE403/RoboController/src/NMEA.hpp"
 
 RF24 radio(7, 8); // CE, CSN
 
