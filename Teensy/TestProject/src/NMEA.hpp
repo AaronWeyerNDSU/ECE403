@@ -87,25 +87,31 @@ void NMEA::parseNMEA(String msgString){
 
   // index location of valid data marker.
   token = strtok(NULL, delim); 
-  valid = (token[0] == 'A');
+  if (token != NULL){
+    valid = (token[0] == 'A');
+  }
 
   // index location of latitude.
   token = strtok(NULL, delim); 
-  latitude = atof(token);
+  if (token != NULL){
+    latitude = atof(token);
+  }
 
   // index location of North/South marker.
   token = strtok(NULL, delim);
-  if (token[0] == 'S') {
+  if (token != NULL && token[0] == 'S') {
     latitude = -1.0*latitude;
   }
 
   // index location of longitude.
   token = strtok(NULL, delim); 
-  longitude = atof(token);
+  if (token != NULL){ 
+    longitude = atof(token); 
+  }
 
   // index location of East/West marker.
   token = strtok(NULL, delim); 
-  if (token[0] == 'W') {
+  if (token != NULL && token[0] == 'W') {
     longitude = -1.0*longitude;
   }
 }
