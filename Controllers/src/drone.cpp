@@ -1,6 +1,6 @@
 // Include libraries
 #include <Arduino.h>
-#include "NMEA.hpp"
+#include "RTK_drone.hpp"
 #include "Position.hpp"
 #include <SPI.h>
 #include <nRF24L01.h>
@@ -13,33 +13,39 @@
 #define ENCODER3 4
 #define ENCODER4 5
 
-NMEA gps(&GPS);
+// RTK_drone gps(&GPS);
 Position position(ENCODER1, ENCODER2, ENCODER3, ENCODER4);
+NMEA gps(&GPS);
+
 RF24 radio(7, 8); // CE, CSN
 
 int heartBeat;
 float oldPos[2];
-const byte address[6] = "00001";
 
 void setup() {
   // Initialize serial communication to USB port and GPS module.
   Serial.begin(9600);
-  
   GPS.begin(9600);
-
-  radio.begin();
-  radio.openReadingPipe(0, address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.startListening();
   
   position.setMotorSpeed(1,1,1,1);
 
   // oldPos[2] = {0};
 
   heartBeat = 0;
+
+
+  Serial.println("finishing Setup.");
+
+  
+  const byte address[6] = "00001";
+  radio.begin();
+  radio.openReadingPipe(0, address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.startListening();
 }
 
 void loop() {
+  // Serial.println("Readin this shit.");
   if (gps.read()) {
     Serial.println("GPS:");
     Serial.println(gps.valid);
@@ -47,19 +53,52 @@ void loop() {
     Serial.println(gps.longitude,5);
     Serial.println(gps.UTCtime,3);
 
-    Serial.println("Position:");
-    Serial.println(position.getCurrentState());
-    Serial.println(position.getMotorSpeed());
-    Serial.println(position.X);
-    Serial.println(position.Y);
-    position.update();
+    // Serial.println("Position:");
+    // Serial.println(position.getCurrentState());
+    // Serial.println(position.getMotorSpeed());
+    // Serial.println(position.X);
+    // Serial.println(position.Y);
+    // position.update();
+  }
+  // if (radio.available()) {
+  //   char text[32] = "";
+  //   radio.read(&text, sizeof(text));
+  //   Serial.println(text);
+  // }
+  if (radio.available()) {
+    float latitudeDeviation, longitudeDeviation, remoteUTCtime, remoteLat, remoteLong, remoteLatExact, remoteLongExact;
+
+    // Read the byte array
+    byte byteArray[sizeof(float) * 3];
+    radio.read(byteArray, sizeof(byteArray));
+
+    // Convert byte array to floats
+    memcpy(&latitudeDeviation, byteArray, sizeof(float));
+    memcpy(&longitudeDeviation, byteArray + sizeof(float), sizeof(float));
+    memcpy(&remoteUTCtime, byteArray + 2 * sizeof(float), sizeof(float));
+    memcpy(&remoteLat, byteArray + 3 * sizeof(float), sizeof(float));
+    memcpy(&remoteLong, byteArray + 4 * sizeof(float), sizeof(float));
+    memcpy(&remoteLatExact, byteArray + 5 * sizeof(float), sizeof(float));
+    memcpy(&remoteLongExact, byteArray + 6 * sizeof(float), sizeof(float));
+
+
+    // Print the received floats
+    Serial.print("lat deviation: ");
+    Serial.println(latitudeDeviation,6);
+    Serial.print("long deviation: ");
+    Serial.println(longitudeDeviation,6);
+    Serial.print("UTC Time: ");
+    Serial.println(remoteUTCtime,3);
+    Serial.print("remote lat: ");
+    Serial.println(remoteLat,6);
+    Serial.print("remote Long: ");
+    Serial.println(remoteLong,6);
+    Serial.print("remote Lat Exact: ");
+    Serial.println(remoteLatExact,6);
+    Serial.print("Remote long Exact: ");
+    Serial.println(remoteLongExact,6);
   }
   
-  if (radio.available()) {
-    char text[32] = "";
-    radio.read(&text, sizeof(text));
-    Serial.println(text);
-  }
 
   //position.compareMotionProfiles();
   //position.update();
