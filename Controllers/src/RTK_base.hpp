@@ -17,7 +17,7 @@ class RTK_base : public NMEA {
         
 };
 
-/// @brief Initialize RTK base station.
+/// @brief Initialize RTK for the base station.
 /// @param serial Serial port used to read GPS.
 RTK_base::RTK_base(Stream *serial): NMEA(serial){
     
