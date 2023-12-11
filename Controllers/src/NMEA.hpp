@@ -16,22 +16,23 @@ class NMEA {
     float longitude;
     float UTCtime;
 
-    NMEA(HardwareSerial *serial);
+    NMEA(Stream *serial);
     boolean available();
     boolean read();
     void parseNMEA(String msg);
 
   private:
-    HardwareSerial* uart;
+    Stream* uart;
 
 };
 
 /// @brief Initialize communications with GPS module.
 /// @param serial Serial port that GPS is connected too.
-NMEA::NMEA(HardwareSerial *serial) {
+NMEA::NMEA(Stream *serial) {
   // Initialize Communication with GPS
   uart = serial;
 
+  // Initialize local variables.
   valid = false;
   latitude = 0.0;
   longitude = 0.0;
