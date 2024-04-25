@@ -6,18 +6,6 @@ numstates = size(states,2);
 
 coeff = states\Z;
 
-xpected = states * coeff;
-
-resid = xpected - Z;
-
-resid_sum_sq = sum(resid.*resid);
-dof = length(X) - length(coeff);
-var_err = resid_sum_sq/dof;
-std_dev_err = sqrt(var_err);
-
-R2 = r_squared(Z,resid);
-disp(['R Squared = ',num2str(R2)])
-
 minX = min(X); maxX = max(X); deltaX = (maxX-minX)/20; 
 minY = min(Y); maxY = max(Y); deltaY = (maxY-minY)/20;
 
@@ -51,9 +39,9 @@ while diffzh > 0.00001 %While the graph isn't rapidly declining
     oldzh = zh;
     
     %Demo
-    plot3(xh, yh, zh, 'x')
-    drawnow;
+    plot3(xh, yh, zh, 'xr')
 end
+drawnow;
  
 xl = 0.3;
 yl = 0.3;
@@ -61,7 +49,7 @@ oldzl = coeff(1).*xl + coeff(2).*xl.^2 + coeff(3).*yl + coeff(4).*yl.^2;
 diffzl = 0;
 
 %Gradient Descent (Low Point)
-while diffzl < 0.1 
+while diffzl < 0.03 
     xl = xl - h*fx(xl);
     yl = yl - h*fy(yl);
     zl = coeff(1).*xl + coeff(2).*xl.^2 + coeff(3).*yl + coeff(4).*yl.^2;
@@ -69,6 +57,11 @@ while diffzl < 0.1
     oldzl = zl;
     
     %Demo
-    plot3(xl, yl, zl, 'x')
-    drawnow;
+    plot3(xl, yl, zl, 'xg')
 end
+
+
+qw{1} = plot(nan, 'xr');
+qw{2} = plot(nan, 'xg');
+legend([qw{:}], {'Gradient Ascent','Gradient Descent'})
+title('Light Level Across a Room')
