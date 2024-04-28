@@ -11,26 +11,26 @@
 #define BR 3
 
 class Position {
-public:
-    Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR);
-    static void ticFL();
-    static void ticFR();
-    static void ticBL();
-    static void ticBR();
-    
-    void update();
-    int compareMotionProfiles();
-    void setMotorSpeed(int FLSpeed, int FRSpeed, int BLSpeed, int BRSpeed);
-    String getMotorSpeed();
-    String getCurrentState();
-    static float X;
-    static float Y;
-    static float angle;
+    public:
+        Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR);
+        static void ticFL();
+        static void ticFR();
+        static void ticBL();
+        static void ticBR();
+        
+        void update();
+        int compareMotionProfiles();
+        void setMotorSpeed(int FLSpeed, int FRSpeed, int BLSpeed, int BRSpeed);
+        String getMotorSpeed();
+        String getCurrentState();
+        static float X;
+        static float Y;
+        static float angle;
 
-private:
-    static int currentState[4];
-    static int velocity[4];
-    static int motionProfiles[17][4];
+    private:
+        static int currentState[4];
+        static int velocity[4];
+        static int motionProfiles[17][4];
 };
 
 // Initialize static members
@@ -59,6 +59,11 @@ int Position::motionProfiles[17][4] = {
     {0,0,-1,1}      // Rotate ahead CCW
 }; 
 
+/// @brief Constructor for position class. uses encoders to know the position of the drone.
+/// @param encoderPinFL digital input pin that the front left encoder is plugged into.
+/// @param encoderPinFR digital input pin that the front right encoder is plugged into.
+/// @param encoderPinBL digital input pin that the back left encoder is plugged into.
+/// @param encoderPinBR digital input pin that the back right encoder is plugged into.
 Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR){
     pinMode(encoderPinFL, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(encoderPinFL), ticFL, CHANGE);
@@ -70,6 +75,8 @@ Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int enc
     attachInterrupt(digitalPinToInterrupt(encoderPinBR), ticBR, CHANGE);
 };
 
+/// @brief Interupt function for front left encoder. 
+/// Increment or decrement the counted number of tic's depending on the direction of wheel spin.
 void Position::ticFL() {
     if (velocity[FL] > 0) {
         currentState[FL]++;
@@ -79,6 +86,9 @@ void Position::ticFL() {
         // do nothing because we don't know the direction of spin.
     }
 }
+
+/// @brief Interupt function for front right encoder. 
+/// Increment or decrement the counted number of tic's depending on the direction of wheel spin.
 void Position::ticFR() {
     if (velocity[FR] > 0) {
         currentState[FR]++;
@@ -88,6 +98,9 @@ void Position::ticFR() {
         // do nothing because we don't know the direction of spin.
     }
 }
+
+/// @brief Interupt function for back left encoder. 
+/// Increment or decrement the counted number of tic's depending on the direction of wheel spin.
 void Position::ticBL() {
     if (velocity[BL] > 0) {
         currentState[BL]++;
@@ -97,6 +110,9 @@ void Position::ticBL() {
         // do nothing because we don't know the direction of spin.
     }
 }
+
+/// @brief Interupt function for back right encoder. 
+/// Increment or decrement the counted number of tic's depending on the direction of wheel spin.
 void Position::ticBR() {
     if (velocity[BR] > 0) {
         currentState[BR]++;
@@ -107,6 +123,8 @@ void Position::ticBR() {
     }
 }
 
+/// @brief get the current number of tics counted for each wheel.
+/// @return string with the quantity of tics counted for each wheel in the format of "FL,FR,BL,BR".
 String Position::getCurrentState(){
     String result = "";
     for (size_t i = 0; i < 4; ++i) {
@@ -117,6 +135,12 @@ String Position::getCurrentState(){
     }
     return result;
 }
+
+/// @brief set the speed of any motor connected.
+/// @param speedFL new speed of front left motor. default is it retains its speed.
+/// @param speedFR new speed of front right motor. default is it retains its speed.
+/// @param speedBL new speed of back left motor. default is it retains its speed.
+/// @param speedBR new speed of back right motor. default is it retains its speed.
 void Position::setMotorSpeed(int speedFL = velocity[FL], int speedFR = velocity[FR], int speedBL = velocity[BL], int speedBR = velocity[BR]){
     velocity[FL] = speedFL;
     velocity[FR] = speedFR;
@@ -137,6 +161,9 @@ void Position::setMotorSpeed(int speedFL = velocity[FL], int speedFR = velocity[
         }
     }
 }
+
+/// @brief Get the velocity value each motor is currently set to.
+/// @return string of the set velocities of each motor.
 String Position::getMotorSpeed(){
     String result = "";
     for (int motor : {FL, FR, BL, BR}) {
@@ -147,6 +174,9 @@ String Position::getMotorSpeed(){
     }
     return result;
 }
+
+/// @brief Get the motion of the robot and update its coordinates based on
+/// the motion detected.
 void Position::update(){
     int motion = compareMotionProfiles();
 
