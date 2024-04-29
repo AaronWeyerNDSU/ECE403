@@ -1,4 +1,4 @@
-function [highCoord,lowCoord] = lightLevelGradient(xCoords,yCoords, lightLevels)
+function [output] = lightLevelGradient(xCoords,yCoords, lightLevels)
     X = xCoords;
     Y = yCoords;
     Z = lightLevels;
@@ -28,12 +28,12 @@ function [highCoord,lowCoord] = lightLevelGradient(xCoords,yCoords, lightLevels)
     xh = 0.3;
     yh = 0.3;
     oldzh = coeff(1).*xh + coeff(2).*xh.^2 + coeff(3).*yh + coeff(4).*yh.^2;
-    diffzh = 100;
+    diffzh = 0.01;
 
     h = 0.01;
 
     %Gradient Ascent (High Point)
-    while diffzh > 0.00001 %While the graph isn't rapidly declining
+    while diffzh > 0.00001 && diffzh < 0.5 %While the graph isn't rapidly declining
         xh = xh + h*fx(xh);
         yh = yh + h*fy(yh);
         zh = coeff(1).*xh + coeff(2).*xh.^2 + coeff(3).*yh + coeff(4).*yh.^2;
@@ -48,10 +48,10 @@ function [highCoord,lowCoord] = lightLevelGradient(xCoords,yCoords, lightLevels)
     xl = 0.3;
     yl = 0.3;
     oldzl = coeff(1).*xl + coeff(2).*xl.^2 + coeff(3).*yl + coeff(4).*yl.^2;
-    diffzl = 0;
+    diffzl = 0.01;
 
     %Gradient Descent (Low Point)
-    while diffzl < 0.1 
+    while diffzl > 0.0001 && diffzl < 0.1 
         xl = xl - h*fx(xl);
         yl = yl - h*fy(yl);
         zl = coeff(1).*xl + coeff(2).*xl.^2 + coeff(3).*yl + coeff(4).*yl.^2;
@@ -63,8 +63,7 @@ function [highCoord,lowCoord] = lightLevelGradient(xCoords,yCoords, lightLevels)
         drawnow;
     end
     
-    lowCoord = [xl, yl];
-    highCoord = [xh, yh];
+    output = [xh, yh; xl, yl];
     
 end
 
