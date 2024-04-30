@@ -30,6 +30,7 @@ class Position {
         static float angle;
 
     private:
+        int velocity2Speed(int velocity);
         static int currentState[4];
         static int velocity[4];
         static bool direction[4];
@@ -155,6 +156,17 @@ String Position::getCurrentState(){
     return result;
 }
 
+int Position::velocity2Speed(int velocity){
+    // Make velocity positive.
+    if(velocity < 0) velocity = -velocity;
+
+    // Invert magnitude of velocity.
+    velocity = 256 - velocity;
+
+    // return bounded velocity.
+    return max(min(velocity, 256), 0);
+}
+
 /// @brief set the speed of any motor connected.
 /// @param velocityFL new speed of front left motor. default is it retains its speed.
 /// @param velocityFR new speed of front right motor. default is it retains its speed.
@@ -162,13 +174,16 @@ String Position::getCurrentState(){
 /// @param velocityBR new speed of back right motor. default is it retains its speed.
 void Position::setMotorSpeed(int velocityFL = velocity[FL], int velocityFR = velocity[FR], int velocityBL = velocity[BL], int velocityBR = velocity[BR]){
     // Check if direction changes.
-    // bool dirChange = ((velocity[FL] ^ velocityFL) >> 31 || (velocity[FR] ^ velocityFR) >> 31 || (velocity[BL] ^ velocityBL) >> 31 || (velocity[BR] ^ velocityBR) >> 31);
+    bool dirChange = ((velocity[FL] ^ velocityFL) >> 31 || (velocity[FR] ^ velocityFR) >> 31 || (velocity[BL] ^ velocityBL) >> 31 || (velocity[BR] ^ velocityBR) >> 31);
     
     // Set velocity variables.
     velocity[FL] = velocityFL;
     velocity[FR] = velocityFR;
     velocity[BL] = velocityBL;
     velocity[BR] = velocityBR;
+    if(dirChange){
+
+    }
     // Set direction of motors.
     for (int motor : {FL, FR, BL, BR}) {
         // 
@@ -179,21 +194,10 @@ void Position::setMotorSpeed(int velocityFL = velocity[FL], int velocityFR = vel
         } else {
             // do nothing.
         }
+        analogWrite(velocityPin[motor], velocity2Speed(velocity[motor]));
     }
 
-    delay(100);
-
-    // Set speed of motors.
-    for (int motor : {FL, FR, BL, BR}) {
-        // 
-        if(velocity[motor] > 0){
-            analogWrite(velocityPin[motor], min(velocity[motor], 256));
-        } else if ( velocity[motor] < 0){
-            analogWrite(velocityPin[motor], min(-velocity[motor], 256));
-        } else {
-            analogWrite(velocityPin[motor], 0);
-        }
-    }
+    
 }
 
 /// @brief Get the velocity value each motor is currently set to.

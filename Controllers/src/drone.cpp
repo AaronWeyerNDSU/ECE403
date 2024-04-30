@@ -23,7 +23,7 @@
 #define DIRECTION_BR 6
 
 // Motors motors;
-// RTK_drone gps(&GPS);
+RTK_drone gps(&GPS);
 Position position(ENCODER_FL, ENCODER_FR, ENCODER_BL, ENCODER_BR, SPEED_FL, SPEED_FR, SPEED_BL, SPEED_BR, DIRECTION_FL, DIRECTION_FR, DIRECTION_BL, DIRECTION_BR);
 
 RF24 radio(14,9);
@@ -33,6 +33,9 @@ int heartBeat;
 float oldPos[2];
 
 void setup() {
+  // Set motor speed to 0.
+  position.setMotorSpeed(0, 0, 0, 0);
+
   // Initialize serial communication to USB port and GPS module.
   Serial.begin(9600);
   GPS.begin(9600);
@@ -41,32 +44,20 @@ void setup() {
 
   heartBeat = 0;
 
-  // gps.startRadio();
-  radio.begin();
-  radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.stopListening();
+  gps.startRadio();
 
   
 }
 
 void loop() {
-  
-  position.setMotorSpeed(256, 256, 256, 256);
-  delay(1000);
-  position.setMotorSpeed(128, 128, 128, 128);
+  digitalWrite(7, HIGH);
+  position.setMotorSpeed(1, 1, 1, 1);
   delay(1000);
   position.setMotorSpeed(0, 0, 0, 0);
   delay(1000);
-  position.setMotorSpeed(-128, -128, -128, -128);
-  delay(1000);
-  position.setMotorSpeed(-256, -256, -256, -256);
-  delay(1000);
-  position.setMotorSpeed(-128, -128, -128, -128);
+  position.setMotorSpeed(-1, -1, -1, -1);
   delay(1000);
   position.setMotorSpeed(0, 0, 0, 0);
-  delay(1000);
-  position.setMotorSpeed(128, 128, 128, 128);
   delay(1000);
 
   // const char text[] = "hello world!";
