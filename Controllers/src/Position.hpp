@@ -81,6 +81,16 @@ Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int enc
     attachInterrupt(digitalPinToInterrupt(encoderPinBL), ticBL, CHANGE);
     pinMode(encoderPinBR, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(encoderPinBR), ticBR, CHANGE);
+
+    // Set pinmodes
+    pinMode(speedPinFL, OUTPUT);
+    pinMode(speedPinFR, OUTPUT);
+    pinMode(speedPinBL, OUTPUT);
+    pinMode(speedPinBR, OUTPUT);
+    pinMode(directionPinFL, OUTPUT);
+    pinMode(directionPinFR, OUTPUT);
+    pinMode(directionPinBL, OUTPUT);
+    pinMode(directionPinBR, OUTPUT);
     
     // Store velocity control pins for each motor.
     velocityPin[FL] = speedPinFL;
