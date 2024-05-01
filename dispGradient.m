@@ -1,4 +1,4 @@
-function [output] = lightLevelGradient(xCoords,yCoords, lightLevels)
+function [output] = dispGradient(xCoords,yCoords, lightLevels)
     X = xCoords;
     Y = yCoords;
     Z = lightLevels;
@@ -15,12 +15,12 @@ function [output] = lightLevelGradient(xCoords,yCoords, lightLevels)
     ZZ = coeff(1).*XX + coeff(2).*XX.^2 + coeff(3).*YY + coeff(4).*YY.^2;
     
     %Demo
-%     figure(2)
-%     surf(XX,YY,ZZ)
-%     hold on;
-%     xlabel('X')
-%     ylabel('Y')
-%     zlabel('Light Level')
+    figure(2)
+    surf(XX,YY,ZZ)
+    hold on;
+    xlabel('X')
+    ylabel('Y')
+    zlabel('Light Level')
 
     fx = @(X) coeff(1) + 2.*coeff(2).*X;
     fy = @(Y) coeff(3) + 2.*coeff(4).*Y;
@@ -41,7 +41,7 @@ function [output] = lightLevelGradient(xCoords,yCoords, lightLevels)
         oldzh = zh;
 
         %Demo
-        %plot3(xh, yh, zh, 'x')
+        plot3(xh, yh, zh, 'x')
         drawnow;
     end
 
@@ -59,11 +59,10 @@ function [output] = lightLevelGradient(xCoords,yCoords, lightLevels)
         oldzl = zl;
 
         %Demo
-        %plot3(xl, yl, zl, 'x')
+        plot3(xl, yl, zl, 'x')
         drawnow;
     end
     
     output = [xh, yh; xl, yl];
     
 end
-

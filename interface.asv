@@ -9,5 +9,5 @@ while true
     h = readline(arduino);
     j = [j;h];
     output = lightLevelGradient(j(:,1),j(:,2),j(:,3));
-    disp("Brightest Point Coords: " + output(1) + ", " + output(3));
+    disp("Brightest Point Coords: " + output[1,1], + ", " + output[1:2])
 end
