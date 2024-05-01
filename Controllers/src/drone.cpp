@@ -1,20 +1,29 @@
 // Include libraries
 #include <Arduino.h>
 // #include "RTK_drone.hpp"
-// #include "Position.hpp"
+#include "Position.hpp"
 #include "RadioManager.hpp"
 
 // Define constants
 #define GPS Serial1 // GPS module is connected to serial port 1 on Teensy.
 #define SPI_chip_enable 14
 #define SPI_chip_select 10
-#define ENCODER1 2
-#define ENCODER2 3
-#define ENCODER3 4
-#define ENCODER4 5
+#define ENCODER_FL 18
+#define ENCODER_FR 17
+#define ENCODER_BL 16
+#define ENCODER_BR 15
+#define SPEED_FL 5
+#define SPEED_FR 4
+#define SPEED_BL 3
+#define SPEED_BR 2
+#define DIRECTION_FL 9
+#define DIRECTION_FR 8
+#define DIRECTION_BL 7
+#define DIRECTION_BR 6
 
 // RTK_drone gps(&GPS);
-// Position position(ENCODER1, ENCODER2, ENCODER3, ENCODER4);
+// Motors motors;
+Position position(ENCODER_FL, ENCODER_FR, ENCODER_BL, ENCODER_BR, SPEED_FL, SPEED_FR, SPEED_BL, SPEED_BR, DIRECTION_FL, DIRECTION_FR, DIRECTION_BL, DIRECTION_BR);
 // RadioManager radio;
 // #include <SPI.h>
 // #include <nRF24L01.h>
@@ -34,6 +43,7 @@ int heartBeat;
 float oldPos[2];
 
 void setup() {
+  position.setMotorSpeed(0, 0, 0, 0);
   // Initialize serial communication to USB port and GPS module.
   Serial.begin(9600);
   // GPS.begin(9600);
@@ -84,6 +94,15 @@ void loop() {
     // radio.startListening();
     // Serial.println("sent" + (String)ret);
   }
+
+  // position.setMotorSpeed(256, 256, 256, 256);
+  // delay(1000);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(1000);
+  // position.setMotorSpeed(-256, -256, -256, -256);
+  // delay(1000);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(1000);
 
  
   // delay(1000);
