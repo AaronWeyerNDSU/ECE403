@@ -3,6 +3,7 @@
 // #include "RTK_drone.hpp"
 #include "Position.hpp"
 #include "RadioManager.hpp"
+#include "NMEA.hpp"
 
 // Define constants
 #define GPS Serial1 // GPS module is connected to serial port 1 on Teensy.
@@ -21,79 +22,62 @@
 #define DIRECTION_BL 7
 #define DIRECTION_BR 6
 
-// RTK_drone gps(&GPS);
-// Motors motors;
+NMEA gps(&GPS);
+RadioManager radio(SPI_chip_enable, SPI_chip_select);
 Position position(ENCODER_FL, ENCODER_FR, ENCODER_BL, ENCODER_BR, SPEED_FL, SPEED_FR, SPEED_BL, SPEED_BR, DIRECTION_FL, DIRECTION_FR, DIRECTION_BL, DIRECTION_BR);
-// RadioManager radio;
-// #include <SPI.h>
-// #include <nRF24L01.h>
-// #include <RF24.h>
 
-
-deviationInformation deviation;
 positionInformation pointInfo;
 
-
-// RF24 radio(14, 10); // CE, CSN
-// const byte addresses[][6] = {"00001", "00002"};
-RadioManager radio(SPI_chip_enable, SPI_chip_select);
-
-
 int heartBeat;
-float oldPos[2];
+
+bool responseSent = false;
 
 void setup() {
+  // Set motor speed to zero to stop motors from spinning at startup.
   position.setMotorSpeed(0, 0, 0, 0);
-  // Initialize serial communication to USB port and GPS module.
-  Serial.begin(9600);
-  // GPS.begin(9600);
+
+  // Initialize debugging serial communication.
+  Serial.begin(115200);
+
+  // Initialize GPS serial communication.
+  GPS.begin(9600);
 
   // Begin Radio communication
   Serial.println("Radio starting.");
   radio.startRadio("00002", "00001");
   Serial.println("Radio started.");
   
-  // position.setMotorSpeed(1,1,1,1);
-  // radio.begin();
-  // radio.openWritingPipe(address);
-  // radio.setPALevel(RF24_PA_MIN);
-  // radio.stopListening();
-  // heartBeat = 0;
-  // radio.begin();
-  // radio.openWritingPipe(addresses[0]); // 00001
-  // radio.openReadingPipe(1, addresses[1]); // 00002
-  // radio.setPALevel(RF24_PA_MIN);
-  // radio.startListening();
-
-  // gps.startRadio();
+  heartBeat = 0;
 }
 int lightValue = 10;
 float lat = 15.01, lon = 100 , utc = 1000;
 byte byteArray[sizeof(float) * 3];
 void loop() {
+  // Check for new GPS coordinates
+  if(gps.read()){
+    // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
+    responseSent = false;
+  }
+  
   bool baseRead = radio.available();
   if (baseRead) {
-        
-    deviation = radio.getDeviation();
-
-    Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
-
-    pointInfo.latitude = deviation.latitudeDeviation;
-    pointInfo.longitude = deviation.longitudeDeviation;
-    pointInfo.UTCtime = deviation.UTCtime;
-    pointInfo.lightLevel = 15.0;//(float)analogRead(A9);
-
-    delay(100);
-
-    int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.UTCtime, pointInfo.lightLevel);
-    Serial.println((String)ret + ", " + (String)pointInfo.lightLevel);
-
-    // // Send the data over the radio.
-    // radio.stopListening();
-    // int ret = radio.write(&pointInfo, sizeof(positionInformation));
-    // radio.startListening();
-    // Serial.println("sent" + (String)ret);
+    // get deviation information from base station.
+    radio.getDeviation();
+    //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
   }
+
+  if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
+    // Set response flag to prevent repeat messages.
+    responseSent = true;
+
+    pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
+    pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
+    pointInfo.lightLevel = (float)analogRead(A9);
+
+    int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
+  }
+
+  
 
   // position.setMotorSpeed(256, 256, 256, 256);
   // delay(1000);
@@ -150,8 +134,13 @@ void loop() {
   //   Serial.println(gps.longitude,5);
   // }
 
-  // if (++heartBeat%50000 == 0) {
-  //   heartBeat = 0;
-  //   Serial.println(".");
-  // }
+  if (++heartBeat%5000 == 0) {
+    heartBeat = 0;
+    // Print long debug status string.
+    printf("GPS info:\n\tvalid: %s\n\tlat: %f\n\tlon: %f\n\tUTC: %f\n", gps.valid ? "Valid" : "Invalid", gps.latitude, gps.longitude, gps.UTCtime);
+    printf("Base Station info:\n\tlat: %f\n\tlon: %f\n\tUTC: %f\n", radio.deviation.latitudeDeviation, radio.deviation.longitudeDeviation, radio.deviation.UTCtime);
+    printf("Light Level: %f\n", pointInfo.lightLevel);
+    printf("Sent to Base: %s\n", responseSent ? "Message sent" : "Message not sent");
+    printf("-----------------------------\n");
+  }
 }

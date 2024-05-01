@@ -13,7 +13,6 @@ struct deviationInformation {
 struct positionInformation {
   float latitude;
   float longitude;
-  float UTCtime;
   float lightLevel;
 };
 
@@ -23,7 +22,7 @@ class RadioManager {
         RadioManager(int SPI_chip_enable, int SPI_chip_selec);
         void startRadio(const byte readAddress[6], const byte writeAddress[6]);
         int sendDeviation(float latitudeDeviation, float longitudeDeviation, float UTCtime);
-        int sendPointInfo(float latitude, float longitude, float UTCtime, float lightLevel);
+        int sendPointInfo(float latitude, float longitude, float lightLevel);
         deviationInformation deviation;
         deviationInformation getDeviation();
         positionInformation pointInfo;
@@ -68,14 +67,13 @@ int RadioManager::sendDeviation(float latitudeDeviation, float longitudeDeviatio
     return ret;
 }
 
-int RadioManager::sendPointInfo(float latitude, float longitude, float UTCtime, float lightLevel){
+int RadioManager::sendPointInfo(float latitude, float longitude, float lightLevel){
     // Stop radio from listening.
     radio.stopListening();
 
     // Copy variables to structure for writing.
     pointInfo.latitude = latitude;
     pointInfo.longitude = longitude;
-    pointInfo.UTCtime = UTCtime;
     pointInfo.lightLevel = lightLevel;
 
     // Write position information to radio.

@@ -42,7 +42,7 @@ void loop() {
     // Send the deviation information to the robot.
     int ret = radio.sendDeviation(gps.latitudeDeviation, gps.longitudeDeviation, gps.UTCtime);
     // Print return code from radio.
-    Serial.println(ret);
+    // Serial.println(ret);
   }
 
   // If there is new data available on the radio.
@@ -50,6 +50,10 @@ void loop() {
     // Read in the new point information.
     radio.getPointInfo();
     // Print point information to terminal.
-    Serial.println((String)radio.pointInfo.latitude + ", " + (String)radio.pointInfo.longitude + ", " + (String)radio.pointInfo.UTCtime + ", " + (String)radio.pointInfo.lightLevel);
+    Serial.print(radio.pointInfo.latitude, 6);
+    Serial.print(" ");
+    Serial.print(radio.pointInfo.longitude, 6);
+    Serial.print(" ");
+    Serial.println(radio.pointInfo.lightLevel, 0);
   }
 }
