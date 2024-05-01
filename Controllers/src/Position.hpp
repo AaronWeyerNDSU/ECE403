@@ -9,10 +9,12 @@
 #define FR 1
 #define BL 2
 #define BR 3
+#define FORWARD LOW
+#define REVERSE HIGH
 
 class Position {
     public:
-        Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR);
+        Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR, int speedPinFL, int speedPinFR, int speedPinBL, int speedPinBR, int directionPinFL, int directionPinFR, int directionPinBL, int directionPinBR);
         static void ticFL();
         static void ticFR();
         static void ticBL();
@@ -28,8 +30,12 @@ class Position {
         static float angle;
 
     private:
+        int velocity2Speed(int velocity);
         static int currentState[4];
         static int velocity[4];
+        static bool direction[4];
+        int velocityPin[4];
+        int directionPin[4];
         static int motionProfiles[17][4];
 };
 
@@ -39,6 +45,7 @@ float Position::Y = 0.0;
 float Position::angle = 0;
 int Position::currentState[4] = {0, 0, 0, 0};
 int Position::velocity[4] = {0, 0, 0, 0};
+bool Position::direction[4] = {false, false, false, false};
 int Position::motionProfiles[17][4] = {
     {0,0,0,0},       // No motion
     {1,1,1,1},      // Forward
@@ -64,7 +71,8 @@ int Position::motionProfiles[17][4] = {
 /// @param encoderPinFR digital input pin that the front right encoder is plugged into.
 /// @param encoderPinBL digital input pin that the back left encoder is plugged into.
 /// @param encoderPinBR digital input pin that the back right encoder is plugged into.
-Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR){
+Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int encoderPinBR, int speedPinFL, int speedPinFR, int speedPinBL, int speedPinBR, int directionPinFL, int directionPinFR, int directionPinBL, int directionPinBR){
+    // Initialize encoders
     pinMode(encoderPinFL, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(encoderPinFL), ticFL, CHANGE);
     pinMode(encoderPinFR, INPUT_PULLUP);
@@ -73,6 +81,28 @@ Position::Position(int encoderPinFL, int encoderPinFR, int encoderPinBL, int enc
     attachInterrupt(digitalPinToInterrupt(encoderPinBL), ticBL, CHANGE);
     pinMode(encoderPinBR, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(encoderPinBR), ticBR, CHANGE);
+
+    // Set pinmodes
+    pinMode(speedPinFL, OUTPUT);
+    pinMode(speedPinFR, OUTPUT);
+    pinMode(speedPinBL, OUTPUT);
+    pinMode(speedPinBR, OUTPUT);
+    pinMode(directionPinFL, OUTPUT);
+    pinMode(directionPinFR, OUTPUT);
+    pinMode(directionPinBL, OUTPUT);
+    pinMode(directionPinBR, OUTPUT);
+    
+    // Store velocity control pins for each motor.
+    velocityPin[FL] = speedPinFL;
+    velocityPin[FR] = speedPinFR;
+    velocityPin[BL] = speedPinBL;
+    velocityPin[BR] = speedPinBR;
+    
+    // Store direction control pins for each motor.
+    directionPin[FL] = directionPinFL;
+    directionPin[FR] = directionPinFR;
+    directionPin[BL] = directionPinBL;
+    directionPin[BR] = directionPinBR;
 };
 
 /// @brief Interupt function for front left encoder. 
@@ -136,30 +166,48 @@ String Position::getCurrentState(){
     return result;
 }
 
-/// @brief set the speed of any motor connected.
-/// @param speedFL new speed of front left motor. default is it retains its speed.
-/// @param speedFR new speed of front right motor. default is it retains its speed.
-/// @param speedBL new speed of back left motor. default is it retains its speed.
-/// @param speedBR new speed of back right motor. default is it retains its speed.
-void Position::setMotorSpeed(int speedFL = velocity[FL], int speedFR = velocity[FR], int speedBL = velocity[BL], int speedBR = velocity[BR]){
-    velocity[FL] = speedFL;
-    velocity[FR] = speedFR;
-    velocity[BL] = speedBL;
-    velocity[BR] = speedBR;
+int Position::velocity2Speed(int velocity){
+    // Make velocity positive.
+    if(velocity < 0) velocity = -velocity;
 
-    for (int motor : {FL, FR, BL, BR}) {
-        // Set the speed of the motor.
-        if (velocity[motor] > 0){
-            // Do things that make motor spin forward.
-            // DAC or poorDAC using digital outputs.
-        } else if (velocity[motor] < 0){
-            // Do things that make motor spin backward.
-            // DAC or poorDAC using digital outputs.
-        } else {
-            // Do things that make motor stop spinning.
-            // DAC or poorDAC using digital outputs.
-        }
+    // Invert magnitude of velocity.
+    velocity = 256 - velocity;
+
+    // return bounded velocity.
+    return max(min(velocity, 256), 0);
+}
+
+/// @brief set the speed of any motor connected.
+/// @param velocityFL new speed of front left motor. default is it retains its speed.
+/// @param velocityFR new speed of front right motor. default is it retains its speed.
+/// @param velocityBL new speed of back left motor. default is it retains its speed.
+/// @param velocityBR new speed of back right motor. default is it retains its speed.
+void Position::setMotorSpeed(int velocityFL = velocity[FL], int velocityFR = velocity[FR], int velocityBL = velocity[BL], int velocityBR = velocity[BR]){
+    // Check if direction changes.
+    bool dirChange = ((velocity[FL] ^ velocityFL) >> 31 || (velocity[FR] ^ velocityFR) >> 31 || (velocity[BL] ^ velocityBL) >> 31 || (velocity[BR] ^ velocityBR) >> 31);
+    
+    // Set velocity variables.
+    velocity[FL] = velocityFL;
+    velocity[FR] = velocityFR;
+    velocity[BL] = velocityBL;
+    velocity[BR] = velocityBR;
+    if(dirChange){
+
     }
+    // Set direction of motors.
+    for (int motor : {FL, FR, BL, BR}) {
+        // 
+        if(velocity[motor] > 0){
+            digitalWrite(directionPin[motor], FORWARD);
+        } else if ( velocity[motor] < 0){
+            digitalWrite(directionPin[motor], REVERSE);
+        } else {
+            // do nothing.
+        }
+        analogWrite(velocityPin[motor], velocity2Speed(velocity[motor]));
+    }
+
+    
 }
 
 /// @brief Get the velocity value each motor is currently set to.

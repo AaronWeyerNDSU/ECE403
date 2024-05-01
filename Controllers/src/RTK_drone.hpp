@@ -13,9 +13,10 @@ class RTK_drone : public NMEA {
         RTK_drone(Stream *serial, int SPI_chip_enable, int SPI_chip_select);
         void startRadio();
         bool read(bool allow_depreciated);
+        RF24 radio;
 
     private:
-        RF24 radio;
+        // RF24 radio;
         float latitudeDeviation;
         float longitudeDeviation;
         float baseUTCtime;
