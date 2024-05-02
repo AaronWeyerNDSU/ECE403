@@ -3,6 +3,8 @@
 #include <SoftwareSerial.h>
 #include "RadioManager.hpp"
 
+#define DEBUG true
+
 #define SPI_chip_enable 7
 #define SPI_chip_select 8
 #define GPS_RX 3
@@ -16,7 +18,9 @@ RadioManager radio(SPI_chip_enable, SPI_chip_select);
 
 void setup() {
   // Open base station comms
-  Serial.begin(9600);
+  if(DEBUG){
+    Serial.begin(9600);
+  }
 
   // Start communication with the GPS module.
   Serial.println("GPS starting.");
@@ -34,6 +38,10 @@ void setup() {
   Serial.println("GPS calibrating");
   gps.calibrate(1);
   Serial.println("GPS calibrated");
+
+  if(!DEBUG){
+    Serial.begin(9600);
+  }
 }
 
 void loop() {

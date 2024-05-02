@@ -9,8 +9,8 @@
 #define FR 1
 #define BL 2
 #define BR 3
-#define FORWARD LOW
-#define REVERSE HIGH
+#define FORWARD HIGH
+#define REVERSE LOW
 
 class Position {
     public:

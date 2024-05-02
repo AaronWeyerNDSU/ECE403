@@ -5,6 +5,8 @@
 #include "RadioManager.hpp"
 #include "NMEA.hpp"
 
+#define DEBUG true
+
 // Define constants
 #define GPS Serial1 // GPS module is connected to serial port 1 on Teensy.
 #define SPI_chip_enable 14
@@ -21,6 +23,7 @@
 #define DIRECTION_FR 8
 #define DIRECTION_BL 7
 #define DIRECTION_BR 6
+#define PHOTO_RESISTOR A9
 
 NMEA gps(&GPS);
 RadioManager radio(SPI_chip_enable, SPI_chip_select);
@@ -28,7 +31,8 @@ Position position(ENCODER_FL, ENCODER_FR, ENCODER_BL, ENCODER_BR, SPEED_FL, SPEE
 
 positionInformation pointInfo;
 
-int heartBeat;
+int heartBeat = 0;
+int maxBrightness = 0;
 
 bool responseSent = false;
 
@@ -46,85 +50,90 @@ void setup() {
   Serial.println("Radio starting.");
   radio.startRadio("00002", "00001");
   Serial.println("Radio started.");
-  
-  heartBeat = 0;
+
+  // Set initial brightness of starting position.
+  maxBrightness = analogRead(PHOTO_RESISTOR);
 }
-int lightValue = 10;
-float lat = 15.01, lon = 100 , utc = 1000;
-byte byteArray[sizeof(float) * 3];
+
 void loop() {
   // Check for new GPS coordinates
-  if(gps.read()){
-    // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
-    responseSent = false;
-  }
+  // if(gps.read()){
+  //   // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
+  //   responseSent = false;
+  // }
   
-  bool baseRead = radio.available();
-  if (baseRead) {
-    // get deviation information from base station.
-    radio.getDeviation();
-    //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
-  }
+  // bool baseRead = radio.available();
+  // if (baseRead) {
+  //   // get deviation information from base station.
+  //   radio.getDeviation();
+  //   //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
+  // }
 
-  if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
-    // Set response flag to prevent repeat messages.
-    responseSent = true;
+  // if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
+  //   // Set response flag to prevent repeat messages.
+  //   responseSent = true;
 
-    pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
-    pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
-    pointInfo.lightLevel = (float)analogRead(A9);
+  //   pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
+  //   pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
+  //   pointInfo.lightLevel = (float)analogRead(PHOTO_RESISTOR);
 
-    int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
-  }
+  //   int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
+  // }
 
+  // int currentBrightness = analogRead(PHOTO_RESISTOR);
   
+  // Move in octagon
+  // position.setMotorSpeed(256, 256, 256, 256); // Forward
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(0, 256, 256, 0); // Left Diagonal Forward
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(-256, 256, 256, -256); // Left
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(-256, 0, 0, -256); // Left Diagonal Reverse
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(-256, -256, -256, -256); // Reverse
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(0, -256, -256, 0); // Right Diagonal Reverse
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(256, -256, -256, 256); // Right
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
+  // position.setMotorSpeed(256, 0, 0, 256); // Right Diagonal Forward
+  // delay(500);
+  // position.setMotorSpeed(0, 0, 0, 0);
+  // delay(500);
 
+  // Move Forward and Backwards
   // position.setMotorSpeed(256, 256, 256, 256);
-  // delay(1000);
+  // delay(500);
+  // position.setMotorSpeed(170, 170, 170, 170);
+  // delay(500);
   // position.setMotorSpeed(0, 0, 0, 0);
-  // delay(1000);
+  // delay(500);
+  // position.setMotorSpeed(-170, -170, -170, -170);
+  // delay(500);
   // position.setMotorSpeed(-256, -256, -256, -256);
-  // delay(1000);
+  // delay(500);
+  // position.setMotorSpeed(-170, -170, -170, -170);
+  // delay(500);
   // position.setMotorSpeed(0, 0, 0, 0);
-  // delay(1000);
+  // delay(500);
+  // position.setMotorSpeed(170, 170, 170, 170);
+  // delay(500);
 
- 
-  // delay(1000);
-  // lightValue = analogRead(A9);
-  // byte byteArray[2*sizeof(int)];
-  // memcpy(byteArray, &lightValue, sizeof(int));
-  // lightValue+=100;
-  // memcpy(byteArray + sizeof(int), &lightValue, sizeof(int));
-  // // memcpy(byteArray + sizeof(float), &lon, sizeof(float));
-  // // memcpy(byteArray + 2 * sizeof(float), &utc, sizeof(float));
-
-  // // Send the data over the radio.
-  // radio.write(byteArray, sizeof(byteArray));
-  
-  // // const char text[] = "Hello World";
-  // lat++;
-  // lon++;
-  // utc++;
-  // lightValue = analogRead(A9);
-
-  // byte byteArray[2*sizeof(int)]; // * 3 + sizeof(int)];
-  
-  // memcpy(byteArray, &lightValue, 2 * sizeof(int));
-  // memcpy(byteArray + sizeof(int), &lightValue, sizeof(int));
-  // // memcpy(byteArray + sizeof(float), &lon, sizeof(float));
-  // // memcpy(byteArray + 2 * sizeof(float), &utc, sizeof(float));
-  // // memcpy(byteArray + 3 * sizeof(float), &lightValue, sizeof(int));
-  
-  // radio.write(byteArray, sizeof(byteArray));
-  
-  // Serial.print(sizeof(int));
-  // Serial.print(", ");
-  // // Serial.print(sizeof(test));
-  // Serial.print(", ");
-  // Serial.print(lightValue);
-  // Serial.println(", ");
-  // // Serial.println(test[1]);
-  // delay(1000);
   
   // if (gps.read(true)) {
   //   Serial.print(gps.UTCtime,3);
@@ -134,7 +143,7 @@ void loop() {
   //   Serial.println(gps.longitude,5);
   // }
 
-  if (++heartBeat%5000 == 0) {
+  if (++heartBeat%1000 == 0 && DEBUG) {
     heartBeat = 0;
     // Print long debug status string.
     printf("GPS info:\n\tvalid: %s\n\tlat: %f\n\tlon: %f\n\tUTC: %f\n", gps.valid ? "Valid" : "Invalid", gps.latitude, gps.longitude, gps.UTCtime);
