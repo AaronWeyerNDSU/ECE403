@@ -3,7 +3,7 @@
 #include <SoftwareSerial.h>
 #include "RadioManager.hpp"
 
-#define DEBUG true
+#define DEBUG false
 
 #define SPI_chip_enable 7
 #define SPI_chip_select 8
@@ -50,7 +50,7 @@ void loop() {
     // Send the deviation information to the robot.
     int ret = radio.sendDeviation(gps.latitudeDeviation, gps.longitudeDeviation, gps.UTCtime);
     // Print return code from radio.
-    // Serial.println(ret);
+    if(DEBUG){ Serial.println(ret); };
   }
 
   // If there is new data available on the radio.

@@ -32,7 +32,7 @@ Position position(ENCODER_FL, ENCODER_FR, ENCODER_BL, ENCODER_BR, SPEED_FL, SPEE
 positionInformation pointInfo;
 
 int heartBeat = 0;
-int maxBrightness = 0;
+float maxBrightness = 0;
 
 bool responseSent = false;
 
@@ -52,35 +52,45 @@ void setup() {
   Serial.println("Radio started.");
 
   // Set initial brightness of starting position.
-  maxBrightness = analogRead(PHOTO_RESISTOR);
+  maxBrightness = (float) analogRead(PHOTO_RESISTOR);
+  // Move forward at start of program.
+  // position.setMotorSpeed(200, 200, 200, 200);
 }
 
 void loop() {
   // Check for new GPS coordinates
-  // if(gps.read()){
-  //   // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
-  //   responseSent = false;
-  // }
+  if(gps.read()){
+    // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
+    responseSent = false;
+  }
   
-  // bool baseRead = radio.available();
-  // if (baseRead) {
-  //   // get deviation information from base station.
-  //   radio.getDeviation();
-  //   //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
+  bool baseRead = radio.available();
+  if (baseRead) {
+    // get deviation information from base station.
+    radio.getDeviation();
+    //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
+  }
+
+  if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
+    // Set response flag to prevent repeat messages.
+    responseSent = true;
+
+    pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
+    pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
+    pointInfo.lightLevel = (float)analogRead(PHOTO_RESISTOR);
+
+    int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
+  }
+
+  // float currentBrightness = (float) analogRead(PHOTO_RESISTOR);
+  // if(currentBrightness > maxBrightness){
+  //   maxBrightness = currentBrightness;
+  // } else if(currentBrightness < 0.95*maxBrightness){
+  //   position.setMotorSpeed(0, 0, 0, 0);
   // }
 
-  // if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
-  //   // Set response flag to prevent repeat messages.
-  //   responseSent = true;
-
-  //   pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
-  //   pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
-  //   pointInfo.lightLevel = (float)analogRead(PHOTO_RESISTOR);
-
-  //   int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
-  // }
-
-  // int currentBrightness = analogRead(PHOTO_RESISTOR);
+  // Serial.println(currentBrightness);
+  // delay(500);
   
   // Move in octagon
   // position.setMotorSpeed(256, 256, 256, 256); // Forward
