@@ -3,7 +3,7 @@
 #include <SoftwareSerial.h>
 #include "RadioManager.hpp"
 
-#define DEBUG false
+#define DEBUG true
 
 #define SPI_chip_enable 7
 #define SPI_chip_select 8
@@ -36,7 +36,7 @@ void setup() {
 
   // Calibrate GPS to get current location.
   Serial.println("GPS calibrating");
-  gps.calibrate(1);
+  // gps.calibrate(1800);
   Serial.println("GPS calibrated");
 
   if(!DEBUG){

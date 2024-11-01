@@ -5,7 +5,7 @@
 #include "RadioManager.hpp"
 #include "NMEA.hpp"
 
-#define DEBUG true
+#define DEBUG false
 
 // Define constants
 #define GPS Serial1 // GPS module is connected to serial port 1 on Teensy.
@@ -36,6 +36,22 @@ float maxBrightness = 0;
 
 bool responseSent = false;
 
+// Demo Variables
+float fakePos[9][2] = {
+  {1,1},
+  {1,2},
+  {1,3},
+  {2,1},
+  {2,2},
+  {2,3},
+  {3,1},
+  {3,2},
+  {3,3}
+};
+int motSpeed = 200;
+int driveTime = 500;
+int posIndex = 0;
+
 void setup() {
   // Set motor speed to zero to stop motors from spinning at startup.
   position.setMotorSpeed(0, 0, 0, 0);
@@ -52,82 +68,105 @@ void setup() {
   Serial.println("Radio started.");
 
   // Set initial brightness of starting position.
-  maxBrightness = (float) analogRead(PHOTO_RESISTOR);
+  // maxBrightness = (float) analogRead(PHOTO_RESISTOR);
   // Move forward at start of program.
-  // position.setMotorSpeed(200, 200, 200, 200);
+  position.setMotorSpeed(200, 200, 200, 200);
 }
 
 void loop() {
-  // Check for new GPS coordinates
-  if(gps.read()){
-    // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
-    responseSent = false;
-  }
-  
-  bool baseRead = radio.available();
-  if (baseRead) {
-    // get deviation information from base station.
-    radio.getDeviation();
-    //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
-  }
-
-  if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
-    // Set response flag to prevent repeat messages.
-    responseSent = true;
-
-    pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
-    pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
-    pointInfo.lightLevel = (float)analogRead(PHOTO_RESISTOR);
-
-    int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
-  }
-
-  // float currentBrightness = (float) analogRead(PHOTO_RESISTOR);
-  // if(currentBrightness > maxBrightness){
-  //   maxBrightness = currentBrightness;
-  // } else if(currentBrightness < 0.95*maxBrightness){
-  //   position.setMotorSpeed(0, 0, 0, 0);
+  // FakeGPS demo
+  // for(int i = 0; i < 9; i++){
+  //   radio.sendPointInfo(fakePos[i][0],fakePos[i][1], (float) analogRead(PHOTO_RESISTOR));
+  //   delay(1000);
   // }
 
-  // Serial.println(currentBrightness);
-  // delay(500);
+  // Check for new GPS coordinates
+  // if(gps.read()){
+  //   // Serial.println((String)gps.valid + ", " + (String)gps.latitude + ", " + (String)gps.longitude + ", " + (String)gps.UTCtime);
+  //   responseSent = false;
+  // }
+  
+  // bool baseRead = radio.available();
+  // if (baseRead) {
+  //   // get deviation information from base station.
+  //   radio.getDeviation();
+  //   //Serial.println((String)deviation.latitudeDeviation + ", " + (String)deviation.longitudeDeviation + ", " + (String)deviation.UTCtime);
+  // }
+
+  // if(gps.UTCtime == radio.deviation.UTCtime && !responseSent){
+  //   // Set response flag to prevent repeat messages.
+  //   responseSent = true;
+
+  //   pointInfo.latitude = gps.latitude - radio.deviation.latitudeDeviation;
+  //   pointInfo.longitude = gps.longitude - radio.deviation.longitudeDeviation;
+  //   pointInfo.lightLevel = (float)analogRead(PHOTO_RESISTOR);
+
+  //   int ret = radio.sendPointInfo(pointInfo.latitude, pointInfo.longitude, pointInfo.lightLevel);
+  // }
+
+  float currentBrightness = (float) analogRead(PHOTO_RESISTOR);
+  if(currentBrightness > maxBrightness){
+    maxBrightness = currentBrightness;
+  } else if(currentBrightness < 0.95*maxBrightness){
+    position.setMotorSpeed(0, 0, 0, 0);
+  }
+
+  Serial.println(currentBrightness);
+  delay(500);
   
   // Move in octagon
-  // position.setMotorSpeed(256, 256, 256, 256); // Forward
-  // delay(500);
+  // position.setMotorSpeed(motSpeed, motSpeed, motSpeed, motSpeed); // Forward
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(0, 256, 256, 0); // Left Diagonal Forward
-  // delay(500);
+  // posIndex = 0;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(0, motSpeed, motSpeed, 0); // Left Diagonal Forward
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(-256, 256, 256, -256); // Left
-  // delay(500);
+  // posIndex = 1;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(-motSpeed, motSpeed, motSpeed, -motSpeed); // Left
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(-256, 0, 0, -256); // Left Diagonal Reverse
-  // delay(500);
+  // posIndex = 2;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(-motSpeed, 0, 0, -motSpeed); // Left Diagonal Reverse
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(-256, -256, -256, -256); // Reverse
-  // delay(500);
+  // posIndex = 3;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(-motSpeed, -motSpeed, -motSpeed, -motSpeed); // Reverse
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(0, -256, -256, 0); // Right Diagonal Reverse
-  // delay(500);
+  // posIndex = 4;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(0, -motSpeed, -motSpeed, 0); // Right Diagonal Reverse
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(256, -256, -256, 256); // Right
-  // delay(500);
+  // posIndex = 5;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(motSpeed, -motSpeed, -motSpeed, motSpeed); // Right
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
-  // position.setMotorSpeed(256, 0, 0, 256); // Right Diagonal Forward
-  // delay(500);
+  // posIndex = 6;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+  // position.setMotorSpeed(motSpeed, 0, 0, motSpeed); // Right Diagonal Forward
+  // delay(driveTime);
   // position.setMotorSpeed(0, 0, 0, 0);
   // delay(500);
+  // posIndex = 8;
+  // radio.sendPointInfo(fakePos[posIndex][0],fakePos[posIndex][1], (float) analogRead(PHOTO_RESISTOR));
+
 
   // Move Forward and Backwards
-  // position.setMotorSpeed(256, 256, 256, 256);
+  // position.setMotorSpeed(motSpeed, motSpeed, motSpeed, motSpeed);
   // delay(500);
   // position.setMotorSpeed(170, 170, 170, 170);
   // delay(500);
@@ -135,7 +174,7 @@ void loop() {
   // delay(500);
   // position.setMotorSpeed(-170, -170, -170, -170);
   // delay(500);
-  // position.setMotorSpeed(-256, -256, -256, -256);
+  // position.setMotorSpeed(-motSpeed, -motSpeed, -motSpeed, -motSpeed);
   // delay(500);
   // position.setMotorSpeed(-170, -170, -170, -170);
   // delay(500);
